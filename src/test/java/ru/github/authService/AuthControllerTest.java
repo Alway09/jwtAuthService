@@ -2,7 +2,6 @@ package ru.github.authService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 import ru.github.authService.util.JwtTokenUtil;
 import ru.github.authService.controller.AuthController;
 import ru.github.authService.to.ClientTo;
@@ -14,8 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.github.authService.TestData.*;
 
-@TestPropertySource(
-        locations = "classpath:application-integrationtest.yaml")
 public class AuthControllerTest extends AbstractControllerTest {
     @Autowired
     private JwtTokenUtil tokenUtil;

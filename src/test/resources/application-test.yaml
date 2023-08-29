@@ -6,23 +6,20 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
+        format_sql: true
         default_batch_fetch_size: 20
         jdbc.batch_size: 20
+    show-sql: true
   sql:
     init:
       mode: always
-      data-locations: classpath:initialize.sql
+      data-locations: classpath:initialize-test.sql
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: password
+    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
 
 # MUST have a size >= 256 bits
 jwt.secret.access: qBTmv4oXFFR2GwjexDJ4t6fsIUIUhhXqlktXjXdkcyygs8nPVEwMfo29VDRRepYDVV5IkIxBMzr7OEHXEHd37w==
 jwt.secret.refresh: zL1HB3Pch05Avfynovxrf/kpF9O2m4NCWKJUjEp27s9J2jEG3ifiKCGylaZ8fDeoONSTJP/wAzKawB8F9rOMNg==
-
-# minutes
-jwt.validity.duration.access: 5
-# days
-jwt.validity.duration.refresh: 30
