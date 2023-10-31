@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import ru.github.authService.model.Client;
 import ru.github.authService.repository.ClientRepository;
 import ru.github.authService.to.ClientTo;
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class ClientToAdditionalValidator implements org.springframework.validation.Validator {
+public class ClientToAdditionalValidator implements Validator {
     private final ClientRepository repository;
     private final HttpServletRequest request;
     @Override

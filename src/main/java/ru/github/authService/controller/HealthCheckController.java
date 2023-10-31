@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = HealthCheckController.URL)
 public class HealthCheckController {
-    public static final String URL = "/api/v1/health";
+    public static final String URL = "/api/v1/auth/health";
 
     @Operation(summary = "Проверка статуса работы сервиса")
     @GetMapping

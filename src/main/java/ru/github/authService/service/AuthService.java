@@ -3,12 +3,7 @@ package ru.github.authService.service;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import ru.github.authService.AuthClient;
 import ru.github.authService.model.ClientRefreshToken;
 import ru.github.authService.repository.ClientRefreshTokenRepository;
 import ru.github.authService.repository.ClientRepository;
@@ -25,12 +20,11 @@ public class AuthService {
     private final ClientRepository clientRepository;
     private final ClientRefreshTokenRepository tokenRepository;
     private final JwtTokenUtil jwtTokenUtil;
-    private final AuthenticationManager authManager;
 
-    public JwtResponse getAccessToken(String refreshToken) {
+    public JwtResponse getNewAccessToken(String refreshToken) {
         log.info("Getting new access token");
-        String clientLogin = validateRefreshToken(refreshToken).getClientLogin();
-        Client client = clientRepository.getExisted(clientLogin);
+        Integer clientId = validateRefreshToken(refreshToken).getClientId();
+        Client client = clientRepository.getExisted(clientId);
         return new JwtResponse(jwtTokenUtil.generateAccess(client), refreshToken);
     }
 
@@ -43,19 +37,22 @@ public class AuthService {
     }
 
     public JwtResponse authenticate(Client client) {
+        log.info("Authenticating client login '" + client.getLogin() + "'");
+
         JwtResponse response = generateTokensPair(client);
-        tokenRepository.save(new ClientRefreshToken(client.getLogin(), response.getRefreshToken()));
+        tokenRepository.save(new ClientRefreshToken(client.getId(), response.getRefreshToken()));
         return response;
     }
 
     public void logout(Client client) {
-        tokenRepository.deleteById(client.getLogin());
+        log.info("Client login '" + client.getLogin() + "' logout");
+        tokenRepository.deleteById(client.getId());
     }
 
     private ClientRefreshToken validateRefreshToken(String refreshToken) {
         jwtTokenUtil.validateRefresh(refreshToken);
-        String clientLogin = jwtTokenUtil.getRefreshSubject(refreshToken);
-        Optional<ClientRefreshToken> dbRefreshToken = tokenRepository.findById(clientLogin);
+        Integer clientId = Integer.parseInt(jwtTokenUtil.getRefreshSubject(refreshToken));
+        Optional<ClientRefreshToken> dbRefreshToken = tokenRepository.findById(clientId);
         if (dbRefreshToken.isEmpty()) {
             throw new JwtException("Refresh token not found");
         }
@@ -66,17 +63,5 @@ public class AuthService {
         return new JwtResponse(
                 jwtTokenUtil.generateAccess(client),
                 jwtTokenUtil.generateRefresh(client));
-    }
-
-    public void authClient(String login, String password) {
-        log.info("Authenticate client login '" + login + "'");
-        Authentication authentication = new UsernamePasswordAuthenticationToken(login, password);
-        authentication = authManager.authenticate(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    public void unauthClient() {
-        log.info("Unauthenticate client login '" + AuthClient.authClient().getLogin() + "'");
-        SecurityContextHolder.getContext().setAuthentication(null);
     }
 }

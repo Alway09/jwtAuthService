@@ -4,11 +4,11 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.github.authService.to.ClientUpdateTo;
 import ru.github.authService.controller.AuthController;
 import ru.github.authService.controller.ClientController;
+import ru.github.authService.to.ClientChangePasswordTo;
 import ru.github.authService.to.ClientTo;
+import ru.github.authService.to.ClientUpdateInfoTo;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.github.authService.TestData.*;
@@ -36,7 +36,12 @@ public class ClientControllerTest extends AbstractControllerTest {
     @Order(1)
     public void register_success() throws Exception {
         post("/signup", status().isCreated(), CLIENT_NEW_TO);
-        postExternal(AuthController.URL + "/signin", status().isOk(), CLIENT_NEW_TO);
+        postWithBasicAuth(AuthController.URL + "/signin", status().isOk(), CLIENT_NEW_TO);
+    }
+
+    @Test
+    public void register_notValid() throws Exception {
+        post("/signup", status().isUnprocessableEntity(), new ClientTo("s", "a"));
     }
 
     //--------------------DISABLE------------------------
@@ -51,7 +56,7 @@ public class ClientControllerTest extends AbstractControllerTest {
     @Test
     @Order(3)
     public void enable_success() throws Exception {
-        patch("/enable", status().isOk(), CLIENT_NEW_TO);
+        patchWithBasicAuth("/enable", status().isOk(), CLIENT_NEW_TO);
     }
 
     //--------------------UPDATE------------------------
@@ -59,18 +64,32 @@ public class ClientControllerTest extends AbstractControllerTest {
     @Order(4)
     public void update_success() throws Exception {
         String accessToken = getAccessToken(CLIENT_NEW_TO);
-        put("/update", status().isOk(), new ClientUpdateTo("string123", "string123"), accessToken);
+        put("/update", status().isOk(), new ClientUpdateInfoTo("string123"), accessToken);
     }
 
     @Test
     public void update_duplicateLogin() throws Exception {
         String accessToken = getAccessToken(CLIENT1_TO);
-        put("/update", status().isUnprocessableEntity(), new ClientUpdateTo(CLIENT2.getLogin(), "string123"), accessToken);
+        put("/update", status().isUnprocessableEntity(), new ClientUpdateInfoTo(CLIENT2.getLogin()), accessToken);
     }
 
     @Test
     public void update_notValid() throws Exception {
         String accessToken = getAccessToken(CLIENT1_TO);
-        put("/update", status().isUnprocessableEntity(), new ClientUpdateTo("A", "3"), accessToken);
+        put("/update", status().isUnprocessableEntity(), new ClientUpdateInfoTo("A"), accessToken);
+    }
+
+    //--------------------CHANGE PASSWORD------------------------
+    @Test
+    @Order(5)
+    public void changePassword_success() throws Exception {
+        String accessToken = getAccessToken(CLIENT2_TO);
+        put("/changePass", status().isOk(), new ClientChangePasswordTo("newnewPassPass"), accessToken);
+    }
+
+    @Test
+    public void changePassword_notValid() throws Exception {
+        String accessToken = getAccessToken(CLIENT1_TO);
+        put("/changePass", status().isUnprocessableEntity(), new ClientChangePasswordTo("e"), accessToken);
     }
 }

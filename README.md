@@ -10,13 +10,11 @@
 * Конфигурация подключения к БД прописывается в параметр spring.datasource<br>
 * Собственные секреты, на основе которых генерируются токены доступа, можно задать параметрами jwt.secret.access и jwt.secret.refresh.
 Секреты должны быть закодированы по стандарту BASE64 и иметь длину более 256 символов.
-* Если инициализировать БД нет необходимости, можно поставить параметр spring.sql.init.mode в значение "never". В этом случае
-файл /src/main/resources/initialize.sql можно удалить
+* Если инициализировать БД нет необходимости, можно поставить параметр spring.sql.init.mode в значение "never".
 -----------------------------------------------------
 ### Сборка проекта
 Для сборки .jar файла проекта необходимо иметь следующее:
 1. IDE с JDK 17 и Maven
-2. PostgreSQL
 
 Этапы сборки:
 1. Открыть проект в IDE, дождаться пока Maven загрузит зависимости
@@ -31,24 +29,20 @@
 ### Описание API
 [OpenAPI REST API documentation](http://localhost:8080/swagger-ui/index.html)
 
-#### 1.  Регистрация: POST http://localhost:8080/api/v1/client/signup
+1. ### Регистрация клиента: POST http://localhost:8080/api/v1/client/signup
 
-Тело запроса:
+Хедер:
 ```
-{
-  "login":"string",
-  "password":"string"
-}
+ Имя: Authenticate
+ Значение: Basic Base64(login:password)
 ```
 
-#### 2.  Аутентификация: POST http://localhost:8080/api/v1/auth/signin
+2. ### Аутентификация клиента: POST http://localhost:8080/api/v1/auth/signin
 
-Тело запроса:
+Хедер:
 ```
-{
-  "login":"string",
-  "password":"string"
-}
+ Имя: Authenticate
+ Значение: Basic Base64(login:password)
 ```
 
 Ответ:
@@ -60,7 +54,7 @@
 }
 ```
 
-#### 3.  Обновление данных: PUT http://localhost:8080/api/v1/client/update
+3. ### Обновление данных клиента: PUT http://localhost:8080/api/v1/client/update
 
 Хедер:
 ```
@@ -71,55 +65,42 @@
 Тело запроса:
 ```
 {
-  "newLogin":"string",
+  "newLogin":"string"
+}
+```
+
+4. ### Обновление пароля клиента: PUT http://localhost:8080/api/v1/client/changePass
+
+Хедер:
+```
+ Имя: Authenticate
+ Значение: Bearer JWT access token
+```
+
+Тело запроса:
+```
+{
   "newPassword":"string"
 }
 ```
-Параметры "newLogin" и/или "newPassword" могут быть пустой строкой.
 
-#### 4.  Остановка обслуживания: PATCH http://localhost:8080/api/v1/client/disable
-
-Хедер:
-```
- Имя: Authenticate
- Значение: Bearer JWT access token
-```
-
-#### 5.  Возобновление обслуживания: PATCH http://localhost:8080/api/v1/client/enable
-
-Тело запроса:
-```
-{
-  "login":"string",
-  "password":"string"
-}
-```
-
-#### 6.  Выпуск нового access токена: POST http://localhost:8080/api/v1/auth/token
-
-Тело запроса:
-```
-{
-  "refreshToken":"string"
-}
-```
-
-Ответ:
-```
-{
-  "type":"Bearer",
-  "accessToken":"string",
-  "refreshToken":"string"
-}
-```
-
-#### 7.  Выпуск новых access и refresh токенов: POST http://localhost:8080/api/v1/auth/refresh
+5. ### Остановка обслуживания клиента: PATCH http://localhost:8080/api/v1/client/disable
 
 Хедер:
 ```
  Имя: Authenticate
  Значение: Bearer JWT access token
 ```
+
+6. ### Возобновление обслуживания клиента: PATCH http://localhost:8080/api/v1/client/enable
+
+Хедер:
+```
+ Имя: Authenticate
+ Значение: Basic Base64(login:password)
+```
+
+7. ### Выпуск нового access токена: POST http://localhost:8080/api/v1/auth/token
 
 Тело запроса:
 ```
@@ -137,7 +118,7 @@
 }
 ```
 
-#### 8.  Выход из системы: POST http://localhost:8080/api/v1/auth/signout
+8. ### Выпуск новых access и refresh токенов: POST http://localhost:8080/api/v1/auth/refresh
 
 Хедер:
 ```
@@ -145,6 +126,30 @@
  Значение: Bearer JWT access token
 ```
 
-#### 9.  Проверка статуса работы сервиса: GET http://localhost:8080/api/v1/health
+Тело запроса:
+```
+{
+  "refreshToken":"string"
+}
+```
+
+Ответ:
+```
+{
+  "type":"Bearer",
+  "accessToken":"string",
+  "refreshToken":"string"
+}
+```
+
+9. ### Выход из системы: POST http://localhost:8080/api/v1/auth/signout
+
+Хедер:
+```
+ Имя: Authenticate
+ Значение: Bearer JWT access token
+```
+
+10. ### Проверка статуса работы микросервиса: GET http://localhost:8080/api/v1/health
 
 В случае успешной проверки возвращается строка "ОК".

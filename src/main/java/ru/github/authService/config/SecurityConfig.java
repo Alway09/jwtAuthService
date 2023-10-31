@@ -16,9 +16,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import ru.github.authService.repository.ClientRepository;
 import ru.github.authService.AuthClient;
 import ru.github.authService.error.FilterChainExceptionHandler;
+import ru.github.authService.repository.ClientRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -59,12 +59,12 @@ public class SecurityConfig {
                                            FilterChainExceptionHandler filterChainExceptionHandler)
             throws Exception {
         http.authorizeHttpRequests()
-                .requestMatchers("/api/*/auth/signin").permitAll()
                 .requestMatchers("/api/*/client/signup").permitAll()
-                .requestMatchers("/api/*/client/enable").permitAll()
                 .requestMatchers("/api/*/auth/token").permitAll()
-                .requestMatchers("/api/*/health").permitAll()
+                .requestMatchers("/api/*/auth/health").permitAll()
                 .anyRequest().authenticated()
+                .and()
+                .httpBasic().authenticationEntryPoint(authenticationEntryPoint)
                 .and()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

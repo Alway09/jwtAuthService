@@ -16,6 +16,7 @@ import ru.github.authService.controller.AuthController;
 import ru.github.authService.to.ClientTo;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,10 +44,16 @@ public abstract class AbstractControllerTest {
                 .andExpect(expectedStatus);
     }
 
-    public ResultActions postExternal(String url, ResultMatcher expectedStatus, Object requestObject) throws Exception {
+    public ResultActions post(String uri, ResultMatcher expectedStatus) throws Exception {
+        return mockMvc.perform(MockMvcRequestBuilders.post(url + uri))
+                .andDo(print())
+                .andExpect(expectedStatus);
+    }
+
+    public ResultActions postWithBasicAuth(String url, ResultMatcher expectedStatus, ClientTo clientTo) throws Exception {
+        String encodedCredentials = Base64.getEncoder().encodeToString((clientTo.getLogin() + ":" + clientTo.getPassword()).getBytes());
         return mockMvc.perform(MockMvcRequestBuilders.post(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getJSON(requestObject)))
+                        .header("Authorization", "Basic ".concat(encodedCredentials)))
                 .andDo(print())
                 .andExpect(expectedStatus);
     }
@@ -78,10 +85,10 @@ public abstract class AbstractControllerTest {
                 .andExpect(expectedStatus);
     }
 
-    public ResultActions patch(String uri, ResultMatcher expectedStatus, Object requestObject) throws Exception {
+    public ResultActions patchWithBasicAuth(String uri, ResultMatcher expectedStatus, ClientTo clientTo) throws Exception {
+        String encodedCredentials = Base64.getEncoder().encodeToString((clientTo.getLogin() + ":" + clientTo.getPassword()).getBytes());
         return mockMvc.perform(MockMvcRequestBuilders.patch(url + uri)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getJSON(requestObject)))
+                        .header("Authorization", "Basic ".concat(encodedCredentials)))
                 .andDo(print())
                 .andExpect(expectedStatus);
     }
@@ -91,7 +98,7 @@ public abstract class AbstractControllerTest {
     }
 
     public String getAccessToken(ClientTo clientTo) throws Exception {
-        return getJsonParam(getContent(postExternal(AuthController.URL + "/signin", status().isOk(), clientTo)), "accessToken");
+        return getJsonParam(getContent(postWithBasicAuth(AuthController.URL + "/signin", status().isOk(), clientTo)), "accessToken");
     }
 
     public String getContent(ResultActions requestResult) throws UnsupportedEncodingException {

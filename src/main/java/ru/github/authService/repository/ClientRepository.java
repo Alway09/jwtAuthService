@@ -18,11 +18,6 @@ public interface ClientRepository extends JpaRepository<Client, Integer> {
         return save(client);
     }
 
-    default Client getEnabledByLogin(String login) {
-        return findClientByLoginIgnoreCaseAndEnabled(login, true).orElseThrow(
-                () -> new NotFoundException("Client with login " + login + " is not found"));
-    }
-
     default Client getExisted(Integer id) {
         return findById(id).orElseThrow(() -> new NotFoundException("Client id '" + id + "' not found"));
     }
@@ -32,6 +27,4 @@ public interface ClientRepository extends JpaRepository<Client, Integer> {
     }
 
     Optional<Client> findClientByLoginIgnoreCase(String login);
-
-    Optional<Client> findClientByLoginIgnoreCaseAndEnabled(String login, boolean enabled);
 }

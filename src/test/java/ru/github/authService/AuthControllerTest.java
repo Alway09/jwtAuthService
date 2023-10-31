@@ -2,9 +2,9 @@ package ru.github.authService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithUserDetails;
 import ru.github.authService.util.JwtTokenUtil;
 import ru.github.authService.controller.AuthController;
-import ru.github.authService.to.ClientTo;
 import ru.github.authService.to.RefreshJwtRequest;
 
 import static org.hamcrest.Matchers.containsString;
@@ -36,32 +36,19 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     //-------------------AUTHENTICATION-----------------------
     @Test
+    @WithUserDetails(value = CLIENT1_LOGIN)
     public void authenticateClient_success() throws Exception {
-        String jsonResponse = getContent(post("/signin", status().isOk(), CLIENT1_TO));
+        String jsonResponse = getContent(post("/signin", status().isOk()));
 
         tokenUtil.validateAccess(getJsonParam(jsonResponse, "accessToken"));
         tokenUtil.validateRefresh(getJsonParam(jsonResponse, "refreshToken"));
     }
 
-    @Test
-    public void authenticateClient_notValid() throws Exception {
-        post("/signin", status().isUnprocessableEntity(), new ClientTo("Aa", "2234"));
-    }
-
-    @Test
-    public void authenticateClient_badCredentials() throws Exception {
-        post("/signin", status().isUnauthorized(), new ClientTo(CLIENT1.getLogin(), "123456789"));
-    }
-
-    @Test
-    public void authenticateClient_disabled() throws Exception {
-        post("/signin", status().isUnprocessableEntity(), CLIENT3_TO);
-    }
-
     //-------------------REFRESHING_ACCESS_TOKEN-----------------------
     @Test
+    @WithUserDetails(value = CLIENT1_LOGIN)
     public void getNewAccessToken_success() throws Exception {
-        String authorization = getContent(post("/signin", status().isOk(), CLIENT1_TO));
+        String authorization = getContent(post("/signin", status().isOk()));
         String refreshToken = getJsonParam(authorization, "refreshToken");
 
         String newAuthorization = getContent(post("/token", status().isOk(), new RefreshJwtRequest(refreshToken)));
@@ -73,7 +60,7 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     @Test
     public void getNewAccessToken_notStoredRefreshToken() throws Exception {
-        String notStoredRefreshToken = tokenUtil.generateRefresh(CLIENT2);
+        String notStoredRefreshToken = tokenUtil.generateRefresh(CLIENT3);
         post("/token", status().isForbidden(), new RefreshJwtRequest(notStoredRefreshToken));
     }
 
@@ -91,8 +78,9 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     //-------------------REFRESHING_REFRESH_TOKEN-----------------------
     @Test
+    @WithUserDetails(value = CLIENT1_LOGIN)
     public void refreshTokens_success() throws Exception {
-        String authorization = getContent(post("/signin", status().isOk(), CLIENT1_TO));
+        String authorization = getContent(post("/signin", status().isOk()));
         String refreshToken = getJsonParam(authorization, "refreshToken");
         String accessToken = getJsonParam(authorization, "accessToken");
 
@@ -104,7 +92,7 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     @Test
     public void refreshTokens_notStoredRefreshToken() throws Exception {
-        String notStoredRefreshToken = tokenUtil.generateRefresh(CLIENT2);
+        String notStoredRefreshToken = tokenUtil.generateRefresh(CLIENT3);
         post("/refresh", status().isForbidden(), new RefreshJwtRequest(notStoredRefreshToken), tokenUtil.generateAccess(CLIENT2));
     }
 
@@ -122,8 +110,9 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     //-------------------SIGNOUT--------------------------
     @Test
+    @WithUserDetails(value = CLIENT1_LOGIN)
     public void signout_success() throws Exception {
-        String authorization = getContent(post("/signin", status().isOk(), CLIENT1_TO));
+        String authorization = getContent(post("/signin", status().isOk()));
         String accessToken = getJsonParam(authorization, "accessToken");
         String refreshToken = getJsonParam(authorization, "refreshToken");
 

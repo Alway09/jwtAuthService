@@ -49,7 +49,7 @@ public class JwtTokenUtil {
 
     public String generateRefresh(Client client) {
         Map<String, Object> claims = new HashMap<>();
-        return doGenerate(claims, client.getLogin(), jwtRefreshSecret, jwtRefreshTokenValidityMilliseconds);
+        return doGenerate(claims, client.getId().toString(), jwtRefreshSecret, jwtRefreshTokenValidityMilliseconds);
     }
 
     public void validateAccess(String accessToken) {

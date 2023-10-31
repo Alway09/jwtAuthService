@@ -6,8 +6,9 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.stereotype.Service;
 import ru.github.authService.repository.ClientRepository;
 import ru.github.authService.model.Client;
-
-import static ru.github.authService.config.SecurityConfig.PASSWORD_ENCODER;
+import ru.github.authService.to.ClientChangePasswordTo;
+import ru.github.authService.to.ClientTo;
+import ru.github.authService.to.ClientUpdateInfoTo;
 
 @Service
 @RequiredArgsConstructor
@@ -16,36 +17,34 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final AuthService authService;
 
-    public Client register(String login, String password) {
-        log.info("Register client login '" + login + "'");
-        Client client = new Client(null, login, password);
+    public Client register(ClientTo clientTo) {
+        log.info("Register client login '" + clientTo.getLogin() + "'");
+        Client client = new Client(null, clientTo.getLogin(), clientTo.getPassword());
         client = clientRepository.prepareAndSave(client);
-        log.info("Client login '" + login + "' registered");
+        log.info("Client login '" + clientTo.getLogin() + "' registered");
         return client;
     }
 
-    public Client update(Client client, String newLogin, String newPassword) {
-        log.info("Update client id '" + client.getId() + "'");
-
-        if (!newLogin.trim().equals("")) {
-            authService.logout(client); // Необходимо т.к. рефреш токен генерируется с содержанием логина
-            client.setLogin(newLogin.toLowerCase());
-        }
-        if (!newPassword.trim().equals("")) {
-            client.setPassword(PASSWORD_ENCODER.encode(newPassword));
-        }
-
+    public Client updateInfo(Client client, ClientUpdateInfoTo updateTo) {
+        log.info("Update info client id '" + client.getId() + "'");
+        client.setLogin(updateTo.getNewLogin().toLowerCase());
         client = clientRepository.save(client);
         log.info("Client id '" + client.getId() + "' updated");
         return client;
     }
 
-    public Client enable(String login) {
-        log.info("Enabling client login '" + login + "'");
-        Client client = clientRepository.getExisted(login);
+    public void changePassword(Client client, ClientChangePasswordTo changePasswordTo) {
+        log.info("Changing password for client login '" + client.getLogin() + "'");
+        client.setPassword(changePasswordTo.getNewPassword());
+        clientRepository.prepareAndSave(client);
+        log.info("Password changed for client login '" + client.getLogin() + "'");
+    }
+
+    public Client enable(Client client) {
+        log.info("Enabling client login '" + client.getLogin() + "'");
         client.setEnabled(true);
         clientRepository.save(client);
-        log.info("Client login '" + login + "' enabled");
+        log.info("Client login '" + client.getLogin() + "' enabled");
         return client;
     }
 
