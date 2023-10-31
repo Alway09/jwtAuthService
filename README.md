@@ -4,6 +4,10 @@
 Данный проект является развитием собственного учебного проекта, оригинал: https://gitlab.com/Alway09/mini-bank/
 
 -----------------------------------------------------
+### Стэк
+Spring Boot 3 (Security, DataJPA, Web, Validation), Hibernate, JUnit5, Maven, PostgreSQL, H2, Docker, OpenAPI, JSON Web Token
+
+-----------------------------------------------------
 ### Настройка проекта
 Собственные настройки можно выставить в файле /src/main/resources/application.yaml<br>
 
